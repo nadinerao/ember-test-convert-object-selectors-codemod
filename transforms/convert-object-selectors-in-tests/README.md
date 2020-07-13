@@ -12,8 +12,10 @@ npx ember-test-convert-object-selectors-codemod convert-object-selectors-in-test
 yarn global add ember-test-convert-object-selectors-codemod
 ember-test-convert-object-selectors-codemod convert-object-selectors-in-tests path/of/files/ or/some**/*glob.js
 ```
+
 ## Limitations
--Does not transform imported object selectors
+* Does not transform imported object selectors
+* Does not remove unused object definitions after transform
 
 ## Input / Output
 
