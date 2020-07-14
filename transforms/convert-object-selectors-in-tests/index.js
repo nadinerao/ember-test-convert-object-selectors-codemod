@@ -1,21 +1,23 @@
 const { getParser } = require('codemod-cli').jscodeshift;
 const { getOptions } = require('codemod-cli');
 
-function hasAssertDomOrFind({ callee }) {
-  const hasAssertDom =
-    callee.object &&
-    callee.property &&
-    callee.object.name === 'assert' &&
-    callee.property.name === 'dom';
-  const hasFind = callee.name === 'find';
-  return hasAssertDom || hasFind;
-}
-
 module.exports = function transformer(file, api) {
   const j = getParser(api);
   const root = j(file.source);
-  const selectors = root
-    .find(j.CallExpression, hasAssertDomOrFind)
+
+  const emberTestHelpers = ['find', 'click', 'fillIn'];
+
+  function hasAssertDomOrTestHelper({ callee }) {
+    const hasAssertDom =
+      callee.object &&
+      callee.property &&
+      callee.object.name === 'assert' &&
+      callee.property.name === 'dom';
+    return hasAssertDom || emberTestHelpers.includes(callee.name);
+  }
+
+  root
+    .find(j.CallExpression, hasAssertDomOrTestHelper)
     .filter(p => p.value.arguments.find(arg => arg.type === "MemberExpression"))
     .forEach(p => {
       // for each object selector, try to find its associated definition and the string value,
