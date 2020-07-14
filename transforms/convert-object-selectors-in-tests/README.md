@@ -1,6 +1,6 @@
 # convert-object-selectors-in-tests
 
-Replace object selectors in `assert.dom` or `find` with their corresponding string values.
+Replace object selectors in `assert.dom`, `find`, `click` or `fillIn` with their corresponding string values.
 
 ## Usage
 
@@ -22,17 +22,17 @@ ember-test-convert-object-selectors-codemod convert-object-selectors-in-tests pa
 ## Input / Output
 
 <!--FIXTURES_TOC_START-->
-* [convert-objects-in-assert-dom](#convert-objects-in-assert-dom)
-* [convert-objects-in-assert-find](#convert-objects-in-assert-find)
+* [convert-object-selectors](#convert-object-selectors)
 <!--FIXTURES_TOC_END-->
 
 <!--FIXTURES_CONTENT_START-->
 ---
-<a id="convert-objects-in-assert-dom">**convert-objects-in-assert-dom**</a>
+<a id="convert-object-selectors">**convert-object-selectors**</a>
 
-**Input** (<small>[convert-objects-in-assert-dom.input.js](transforms/convert-object-selectors-in-tests/__testfixtures__/convert-objects-in-assert-dom.input.js)</small>):
+**Input** (<small>[convert-object-selectors.input.js](transforms/convert-object-selectors-in-tests/__testfixtures__/convert-object-selectors.input.js)</small>):
 ```js
 import { module, test } from 'qunit';
+import { render, find, click, fillIn } from '@ember/test-helpers';
 
 module('foo', function() {
 
@@ -60,13 +60,43 @@ module('foo', function() {
     assert.dom(NESTED_SELECTORS.WITH.CONTAINER).exists();
     assert.dom(NESTED_SELECTORS.WITH.BUTTON).exists();
   });
+
+  test('find test 1', async function(assert) {
+    assert.expect(1);
+
+    assert.notOk(find(SELECTORS.block));
+  });
+
+  test('find test 2', async function(assert) {
+    assert.expect(2);
+
+    assert.ok(find(NESTED_SELECTORS.WITH.CONTAINER));
+    assert.notOk(find(NESTED_SELECTORS.WITH.BUTTON));
+  });
+
+  test('click test', async function(assert) {
+    assert.expect(1);
+
+    await click(NESTED_SELECTORS.WITH.CONTAINER);
+
+    assert.dom(NESTED_SELECTORS.WITH.BUTTON).exists();
+  });
+
+  test('fillIn test', async function(assert) {
+    assert.expect(1);
+
+    await fillIn(SELECTORS.block, 'foo');
+
+    assert.dom(SELECTORS.image).exists();
+  });
 });
 
 ```
 
-**Output** (<small>[convert-objects-in-assert-dom.output.js](transforms/convert-object-selectors-in-tests/__testfixtures__/convert-objects-in-assert-dom.output.js)</small>):
+**Output** (<small>[convert-object-selectors.output.js](transforms/convert-object-selectors-in-tests/__testfixtures__/convert-object-selectors.output.js)</small>):
 ```js
 import { module, test } from 'qunit';
+import { render, find, click, fillIn } from '@ember/test-helpers';
 
 module('foo', function() {
 
@@ -94,65 +124,6 @@ module('foo', function() {
     assert.dom('[data-test-container]').exists();
     assert.dom('[data-test-button]').exists();
   });
-});
-
-```
----
-<a id="convert-objects-in-assert-find">**convert-objects-in-assert-find**</a>
-
-**Input** (<small>[convert-objects-in-assert-find.input.js](transforms/convert-object-selectors-in-tests/__testfixtures__/convert-objects-in-assert-find.input.js)</small>):
-```js
-import { module, test } from 'qunit';
-import { find } from '@ember/test-helpers';
-
-module('foo', function() {
-
-  const SELECTORS = {
-    block: '[data-test-block]',
-    image: '[data-test-image]',
-  };
-
-  const NESTED_SELECTORS = {
-    WITH: {
-      CONTAINER: '[data-test-container]',
-      BUTTON: '[data-test-button]',
-    },
-  };
-
-  test('find test 1', async function(assert) {
-    assert.expect(1);
-
-    assert.notOk(find(SELECTORS.block));
-  });
-
-  test('find test 2', async function(assert) {
-    assert.expect(2);
-
-    assert.ok(find(NESTED_SELECTORS.WITH.CONTAINER));
-    assert.notOk(find(NESTED_SELECTORS.WITH.BUTTON));
-  });
-});
-
-```
-
-**Output** (<small>[convert-objects-in-assert-find.output.js](transforms/convert-object-selectors-in-tests/__testfixtures__/convert-objects-in-assert-find.output.js)</small>):
-```js
-import { module, test } from 'qunit';
-import { find } from '@ember/test-helpers';
-
-module('foo', function() {
-
-  const SELECTORS = {
-    block: '[data-test-block]',
-    image: '[data-test-image]',
-  };
-
-  const NESTED_SELECTORS = {
-    WITH: {
-      CONTAINER: '[data-test-container]',
-      BUTTON: '[data-test-button]',
-    },
-  };
 
   test('find test 1', async function(assert) {
     assert.expect(1);
@@ -165,6 +136,22 @@ module('foo', function() {
 
     assert.ok(find('[data-test-container]'));
     assert.notOk(find('[data-test-button]'));
+  });
+
+  test('click test', async function(assert) {
+    assert.expect(1);
+
+    await click('[data-test-container]');
+
+    assert.dom('[data-test-button]').exists();
+  });
+
+  test('fillIn test', async function(assert) {
+    assert.expect(1);
+
+    await fillIn('[data-test-block]', 'foo');
+
+    assert.dom('[data-test-image]').exists();
   });
 });
 
