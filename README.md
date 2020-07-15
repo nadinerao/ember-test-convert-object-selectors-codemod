@@ -1,7 +1,8 @@
 # ember-test-convert-object-selectors-codemod
+Contains a codemod to replace object selectors in `assert.dom`, `find`, `click` or `fillIn` with their corresponding string values.
 
-
-A collection of codemods for ember-test-convert-object-selectors-codemod.
+## Motivation
+Selectors assigned to variables in tests can allow the selectors to be shared across multiple tests, and in fact across multiple test modules. However in a larger application, doing so can make tests harder to read, understand, and follow. Using the selector string instead of a variable keeps the test more atomic, allows the test to be more resilient when changes to the selector occur outside the test, and ensures the test is readable top-to-bottom.
 
 ## Usage
 
