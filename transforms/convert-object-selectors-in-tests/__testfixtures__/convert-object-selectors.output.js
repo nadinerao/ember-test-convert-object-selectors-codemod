@@ -1,5 +1,6 @@
 import { module, test } from 'qunit';
 import { render, find, click, fillIn } from '@ember/test-helpers';
+import { IMPORTED_CONSTS } from 'fake-location';
 
 module('foo', function() {
 
@@ -63,5 +64,20 @@ module('foo', function() {
     assert.expect(1);
 
     assert.notOk(find('[data-test-a-cool-selector]'));
+  });
+
+  test('constant within template literal test', async function(assert) {
+    assert.expect(1);
+
+    assert.dom('[data-test-a-cool-selector] [data-test-nested]').exists();
+    assert.ok(find('[data-test-button] [data-test-nested]'));
+    assert.ok(find('[data-test-nested] [data-test-button]'));
+    assert.ok(find('[data-test-nested] [data-test-button] [data-test-nested] [data-test-a-cool-selector]'));
+  });
+
+  test('unresolveable template literal test', async function(assert) {
+    assert.expect(1);
+
+    assert.dom(`${IMPORTED_CONSTS.module} [data-test-nested]`).exists();
   });
 });

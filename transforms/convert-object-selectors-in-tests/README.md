@@ -33,6 +33,7 @@ ember-test-convert-object-selectors-codemod convert-object-selectors-in-tests pa
 ```js
 import { module, test } from 'qunit';
 import { render, find, click, fillIn } from '@ember/test-helpers';
+import { IMPORTED_CONSTS } from 'fake-location';
 
 module('foo', function() {
 
@@ -40,6 +41,8 @@ module('foo', function() {
     block: '[data-test-block]',
     image: '[data-test-image]',
   };
+
+  const constantSelector = '[data-test-a-cool-selector]';
 
   const NESTED_SELECTORS = {
     WITH: {
@@ -89,6 +92,27 @@ module('foo', function() {
 
     assert.dom(SELECTORS.image).exists();
   });
+
+  test('constant selector test', async function(assert) {
+    assert.expect(1);
+
+    assert.notOk(find(constantSelector));
+  });
+
+  test('constant within template literal test', async function(assert) {
+    assert.expect(1);
+
+    assert.dom(`${constantSelector} [data-test-nested]`).exists();
+    assert.ok(find(`${NESTED_SELECTORS.WITH.BUTTON} [data-test-nested]`));
+    assert.ok(find(`[data-test-nested] ${NESTED_SELECTORS.WITH.BUTTON}`));
+    assert.ok(find(`[data-test-nested] ${NESTED_SELECTORS.WITH.BUTTON} [data-test-nested] ${constantSelector}`));
+  });
+
+  test('unresolveable template literal test', async function(assert) {
+    assert.expect(1);
+
+    assert.dom(`${IMPORTED_CONSTS.module} [data-test-nested]`).exists();
+  });
 });
 
 ```
@@ -97,6 +121,7 @@ module('foo', function() {
 ```js
 import { module, test } from 'qunit';
 import { render, find, click, fillIn } from '@ember/test-helpers';
+import { IMPORTED_CONSTS } from 'fake-location';
 
 module('foo', function() {
 
@@ -104,6 +129,8 @@ module('foo', function() {
     block: '[data-test-block]',
     image: '[data-test-image]',
   };
+
+  const constantSelector = '[data-test-a-cool-selector]';
 
   const NESTED_SELECTORS = {
     WITH: {
@@ -152,6 +179,27 @@ module('foo', function() {
     await fillIn('[data-test-block]', 'foo');
 
     assert.dom('[data-test-image]').exists();
+  });
+
+  test('constant selector test', async function(assert) {
+    assert.expect(1);
+
+    assert.notOk(find('[data-test-a-cool-selector]'));
+  });
+
+  test('constant within template literal test', async function(assert) {
+    assert.expect(1);
+
+    assert.dom('[data-test-a-cool-selector] [data-test-nested]').exists();
+    assert.ok(find('[data-test-button] [data-test-nested]'));
+    assert.ok(find('[data-test-nested] [data-test-button]'));
+    assert.ok(find('[data-test-nested] [data-test-button] [data-test-nested] [data-test-a-cool-selector]'));
+  });
+
+  test('unresolveable template literal test', async function(assert) {
+    assert.expect(1);
+
+    assert.dom(`${IMPORTED_CONSTS.module} [data-test-nested]`).exists();
   });
 });
 
