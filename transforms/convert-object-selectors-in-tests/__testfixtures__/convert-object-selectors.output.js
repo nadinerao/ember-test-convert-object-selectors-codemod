@@ -8,6 +8,8 @@ module('foo', function() {
     image: '[data-test-image]',
   };
 
+  const constantSelector = '[data-test-a-cool-selector]';
+
   const NESTED_SELECTORS = {
     WITH: {
       CONTAINER: '[data-test-container]',
@@ -55,5 +57,11 @@ module('foo', function() {
     await fillIn('[data-test-block]', 'foo');
 
     assert.dom('[data-test-image]').exists();
+  });
+
+  test('constant selector test', async function(assert) {
+    assert.expect(1);
+
+    assert.notOk(find('[data-test-a-cool-selector]'));
   });
 });

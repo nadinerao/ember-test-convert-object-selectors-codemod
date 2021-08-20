@@ -16,7 +16,7 @@ ember-test-convert-object-selectors-codemod convert-object-selectors-in-tests pa
 ## Limitations
 
 * Does not transform imported object selectors, e.g. `import SELECTORS from 'test-helpers/test-selectors'`
-* Does not transform simple variables, e.g. `assert.dom(myTestSelector)`
+* Does not transform objects defined on this context, e.g. `assert.dom(this.SELECTOR.IMAGE)`
 * Does not remove unused object definitions after transform
 
 ## Input / Output
