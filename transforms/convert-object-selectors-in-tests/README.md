@@ -16,7 +16,7 @@ ember-test-convert-object-selectors-codemod convert-object-selectors-in-tests pa
 ## Limitations
 
 * Does not transform imported object selectors, e.g. `import SELECTORS from 'test-helpers/test-selectors'`
-* Does not transform objects defined on this context, e.g. `assert.dom(this.SELECTOR.IMAGE)`
+* Does not transform constants defined on this context, e.g. `assert.dom(this.IMAGE_SELECTOR)`
 * Does not remove unused object definitions after transform
 
 ## Input / Output
@@ -35,7 +35,16 @@ import { module, test } from 'qunit';
 import { render, find, click, fillIn } from '@ember/test-helpers';
 import { IMPORTED_CONSTS } from 'fake-location';
 
-module('foo', function() {
+module('foo', function(hooks) {
+  hooks.beforeEach(function() {
+    this.NESTED_SELECTORS = {
+      IMAGE: '[data-test-image-in-this]',
+      BUTTON: '[data-test-button-in-this]',
+      WITH: {
+        BUTTON: '[data-test-button-in-nested-this]',
+      }
+    };
+  })
 
   const SELECTORS = {
     block: '[data-test-block]',
@@ -113,6 +122,13 @@ module('foo', function() {
 
     assert.dom(`${IMPORTED_CONSTS.module} [data-test-nested]`).exists();
   });
+
+  test('resolves variable defined on this', async function(assert) {
+    assert.expect(2);
+
+    assert.dom(`${this.NESTED_SELECTORS.BUTTON} [data-test-nested]`).exists();
+    assert.dom(`${this.NESTED_SELECTORS.WITH.BUTTON} [data-test-nested]`).exists();
+  });
 });
 
 ```
@@ -123,7 +139,16 @@ import { module, test } from 'qunit';
 import { render, find, click, fillIn } from '@ember/test-helpers';
 import { IMPORTED_CONSTS } from 'fake-location';
 
-module('foo', function() {
+module('foo', function(hooks) {
+  hooks.beforeEach(function() {
+    this.NESTED_SELECTORS = {
+      IMAGE: '[data-test-image-in-this]',
+      BUTTON: '[data-test-button-in-this]',
+      WITH: {
+        BUTTON: '[data-test-button-in-nested-this]',
+      }
+    };
+  })
 
   const SELECTORS = {
     block: '[data-test-block]',
@@ -200,6 +225,13 @@ module('foo', function() {
     assert.expect(1);
 
     assert.dom(`${IMPORTED_CONSTS.module} [data-test-nested]`).exists();
+  });
+
+  test('resolves variable defined on this', async function(assert) {
+    assert.expect(2);
+
+    assert.dom('[data-test-button-in-this] [data-test-nested]').exists();
+    assert.dom('[data-test-button-in-nested-this] [data-test-nested]').exists();
   });
 });
 

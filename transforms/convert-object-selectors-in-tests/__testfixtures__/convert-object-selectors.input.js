@@ -2,7 +2,16 @@ import { module, test } from 'qunit';
 import { render, find, click, fillIn } from '@ember/test-helpers';
 import { IMPORTED_CONSTS } from 'fake-location';
 
-module('foo', function() {
+module('foo', function(hooks) {
+  hooks.beforeEach(function() {
+    this.NESTED_SELECTORS = {
+      IMAGE: '[data-test-image-in-this]',
+      BUTTON: '[data-test-button-in-this]',
+      WITH: {
+        BUTTON: '[data-test-button-in-nested-this]',
+      }
+    };
+  })
 
   const SELECTORS = {
     block: '[data-test-block]',
@@ -79,5 +88,12 @@ module('foo', function() {
     assert.expect(1);
 
     assert.dom(`${IMPORTED_CONSTS.module} [data-test-nested]`).exists();
+  });
+
+  test('resolves variable defined on this', async function(assert) {
+    assert.expect(2);
+
+    assert.dom(`${this.NESTED_SELECTORS.BUTTON} [data-test-nested]`).exists();
+    assert.dom(`${this.NESTED_SELECTORS.WITH.BUTTON} [data-test-nested]`).exists();
   });
 });
