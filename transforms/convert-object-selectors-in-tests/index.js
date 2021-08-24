@@ -16,6 +16,23 @@ module.exports = function transformer(file, api) {
   }
 
   /**
+   * Given a node, return an array of its parents, where the last index is the
+   * original argument.
+   * @param {Node} node argument node
+   * @return {Array}
+   */
+  function getNodePath(node) {
+    let path = [];
+    let currentNode = node;
+    while (currentNode.object) {
+      path.push(currentNode);
+      currentNode = currentNode.object;
+    }
+    path.push(currentNode);
+    return path.reverse();
+  }
+
+  /**
    * Given a node resolve it's selector value.
    * @param {Node} argument the argument node (e.g in find(selector.pickle), selector.pickle is the node)
    * @return {String} the resolved selector
@@ -30,31 +47,30 @@ module.exports = function transformer(file, api) {
       const varValue = variableDefinition.get(0).node.init.value;
       return varValue;
     } else if (argument.type === 'MemberExpression') {
-      // for each object selector, try to find its associated definition and the string value,
-      // e.g. if we have assert.dom(SELECTORS.NAME), look for const SELECTORS = { NAME: '[data-test-foo]' } }
-      if (!argument.object) {
-        return;
+      const nodePath = getNodePath(argument);
+      const rootSelectorNode = nodePath.shift();
+
+      // resolves to the defined object for the selector. (right side of the assignment)
+      let resolvedObject;
+
+      if (rootSelectorNode.type === 'ThisExpression') {
+        // This accounts for variables defined on 'this context'
+        const rootVarNode = nodePath.shift();
+        const { name } = rootVarNode.property;
+        resolvedObject = root.find(j.AssignmentExpression, {
+          left: { property: { name } },
+        });
+      } else {
+        resolvedObject = root.find(j.VariableDeclarator, {
+          id: { name: rootSelectorNode.name },
+        });
       }
 
-      // this should be the name for the object selector, e.g. 'SELECTORS'
-      const objectIdentifierName =
-        argument.object.name || (argument.object.object && argument.object.object.name);
-      // this should be the object property key, e.g. 'NAME'
-      const keyName = argument.property && argument.property.name;
+      const keyPaths = nodePath.reduce((red, node) => {
+        const next = red.find(j.ObjectProperty, { key: { name: node.property.name } });
+        return next;
+      }, resolvedObject);
 
-      let objectExpressions = root
-        .findVariableDeclarators(objectIdentifierName)
-        .find(j.ObjectExpression);
-      // go one level deeper if the node we're currently looking at is still a MemberExpression
-      // this accounts for something like SELECTORS.AT.NAME
-      if (argument.object.type === 'MemberExpression') {
-        objectExpressions = objectExpressions.find(j.ObjectExpression);
-      }
-      const keyPaths = objectExpressions.find(j.ObjectProperty, {
-        key: {
-          name: keyName,
-        },
-      });
       if (keyPaths.length) {
         const { node } = keyPaths.get(0);
         const value = node.value && node.value.value;
